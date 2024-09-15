@@ -1,0 +1,271 @@
+---
+title: "ADV"
+output: html_notebook
+---
+NAME - OM CHANDRA
+
+UID - 2021700014
+
+BATCH - L
+
+EXPT - 5
+
+```{r}
+housing_data <- read.csv("C:\\Users\\Om Chandra\\Downloads\\archive (22)\\Housing.csv", header = TRUE, stringsAsFactors = FALSE)
+```
+
+```{r}
+head(housing_data)
+```
+```{r}
+summary(housing_data)
+```
+```{r}
+install.packages("lubridate")  
+library(lubridate)
+```
+
+```{r}
+dataset <- na.omit(housing_data)
+```
+
+```{r}
+housing_data$date <- ymd(substr(housing_data$date, 1, 8))
+```
+
+```{r}
+head(housing_data)
+```
+```{r}
+install.packages("wordcloud")
+```
+
+```{r}
+library(wordcloud)
+library(dplyr)
+
+# Generate the Word Cloud for Zipcodes
+zipcode_count <- housing_data %>%
+  count(zipcode) %>%
+  arrange(desc(n))
+
+# Create word cloud
+wordcloud(words = zipcode_count$zipcode, 
+          freq = zipcode_count$n, 
+          min.freq = 1,
+           max.words = 50,
+          scale = c(2.2, 0.5), 
+          colors = brewer.pal(8, "Dark2"))
+
+```
+1.)Word Cloud for Zipcodes
+
+Observations:
+
+i.)Zip codes with larger font sizes are more frequently represented in the dataset, indicating higher occurrence.
+
+ii.)Here Zipcodes 98115 ,98103 ,98034 ,etc have large size which means people tend to buy house in this zipcode ,the reason could be good area,affordable prices. 
+
+Questions Answered:
+
+i.)Which zip codes are most prevalent in the dataset?In which area people tend to buy houses more?
+
+ii.)How does the frequency of different zip codes compare visually?
+
+```{r}
+library(ggplot2)
+library(scales)  # For formatting y-axis labels
+
+# Define the zip codes to include
+zipcodes_to_include <- c(98103, 98004, 98005)
+
+# Filter the data for the specified zip codes and bedrooms up to 10
+filtered_data <- housing_data %>% 
+  filter(zipcode %in% zipcodes_to_include, bedrooms <= 5)
+
+# Create the boxplot
+ggplot(filtered_data, aes(x = factor(bedrooms), y = price, fill = factor(zipcode))) +
+  geom_boxplot() +
+  labs(title = "Price Distribution by Bedrooms for Selected Zipcodes",
+       x = "Number of Bedrooms",
+       y = "Price",
+       fill = "Zipcode") +
+  scale_y_continuous(labels = scales::comma) +  # Format y-axis labels with commas
+  theme_minimal()
+
+```
+2.)Boxplot: Price Distribution by Bedrooms for Selected Zipcodes
+
+Observations:
+
+i.)Houses with more bedrooms generally have higher prices.There is a visible increase in the median price as the number of bedrooms increases.
+
+ii.)The variability in prices is greater for houses in zipcode 98004, as indicated by the wider interquartile ranges.This indicates that the posh area tend to have greater variability in prices.
+
+iii.)We can also see zipcode 98004 and 98005 have no houses with 1 bedroom indicating that the area is a deluxe area.
+
+Questions Answered:
+
+i.)How does the price of houses vary with the number of bedrooms in selected zip codes?
+
+ii.)Are there noticeable trends or patterns in price distribution for different bedroom counts?
+
+```{r}
+library(ggplot2)
+library(dplyr)  # Ensure dplyr is loaded for data manipulation
+
+# Filter data to include only grades from 3 to 10
+filtered_data <- housing_data %>% 
+  filter(grade >= 3 & grade <= 10)
+
+# Create the violin plot with the filtered data
+ggplot(filtered_data, aes(x = factor(grade), y = price)) +
+  geom_violin(fill = "lightblue", drop = FALSE) +
+  labs(title = "Price Distribution by Grade (Grades 3 to 10)", 
+       x = "Grade", 
+       y = "Price") +
+  theme_minimal()
+
+```
+
+3.)Violin Plot: Price Distribution by Grade (Grades 3 to 10)
+
+Observations:
+
+i.)Higher-grade properties generally have higher median prices compared to lower-grade properties.
+
+ii.)The range of prices is broader for higher-grade properties, indicating more variability.
+
+iii.)The density of house prices is higher in the low to mid range of grades which indicates more people(as their are more common people) buy house of low-mid grade.
+
+Questions Answered:
+
+i.)How does the price distribution differ across various property grades?
+
+ii.)What is the spread of house prices for each grade level?
+
+```{r}
+ggplot(housing_data, aes(x = sqft_above, y = price)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "purple", se = FALSE) +
+  labs(
+    title = "Linear Regression of Price vs Square Feet Above",
+    x = "Square Feet Above",
+    y = "Price"
+  ) +
+  theme_minimal()
+
+```
+
+4.)Linear Regression Plot: Price vs Square Feet Above
+
+Observations:
+
+i.)There is a positive correlation between price and square footage above ground.
+
+ii.)The regression line shows that as the square footage above ground increases, the price also tends to increase except for some outliers.
+.
+iii.)The relationship appears linear, with a steady increase in price with more square footage above ground.
+
+Questions Answered:
+
+i.)What is the relationship between the price of a property and its square footage above ground?
+
+ii.)Does increasing square footage above ground significantly affect property prices?
+
+```{r}
+poly_model <- lm(price ~ poly(sqft_living, 2), data = housing_data)
+
+# Create the plot
+ggplot(housing_data, aes(x = sqft_living, y = price)) +
+  geom_point(color = "black") +
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), color = "blue", size = 1) +
+  labs(title = "Polynomial Regression Plot of Price vs. Square Feet of Living Space",
+       x = "Square Feet of Living Space", 
+       y = "Price") +
+  theme_minimal()
+
+```
+5.)Polynomial Regression Plot: Price vs Square Feet of Living Space
+
+Observations:
+
+i.)The polynomial regression curve shows a non-linear relationship between price and square footage of living space.
+
+ii.)We can see as the square foot of living space increases , the prices increase more non-linearly. 
+
+iii.)The relationship is more complex than a simple linear trend, suggesting other factors influence price.
+
+Questions Answered:
+
+i.)How does the price of a property relate to its square footage of living space in a non-linear fashion?
+
+ii.)Is square footage of living space is the only factor affecting price of a house?
+
+```{r}
+install.packages("plotly")
+```
+
+```{r}
+library(plotly)
+library(dplyr)
+
+# Filter the data for bedrooms and bathrooms up to 5
+filtered_data_3d <- housing_data %>%
+  filter(bedrooms <= 5, bathrooms <= 5)
+
+# Create the 3D scatter plot
+plot_ly(filtered_data_3d, x = ~bedrooms, y = ~bathrooms, z = ~price, 
+        type = "scatter3d", mode = "markers",
+        marker = list(size = 5, color = ~price, colorscale = "Viridis")) %>%
+  layout(title = "3D Plot: Price vs Bedrooms and Bathrooms (Up to 5)",
+         scene = list(xaxis = list(title = 'Bedrooms'),
+                      yaxis = list(title = 'Bathrooms'),
+                      zaxis = list(title = 'Price')))
+
+
+```
+6.)3D Scatter Plot: Price vs Bedrooms and Bathrooms
+
+Observations:
+
+i.)Properties with more bedrooms and bathrooms tend to have higher prices.
+
+ii.)The 3D plot shows a clear spread of data points, indicating how price varies with both variables.
+
+iii.)There is a noticeable upward trend in price with increasing numbers of bedrooms and bathrooms except for some outliers.
+
+iv.)We can also see a linear relationship between no. of bedrooms and no.of bathrooms except for some cases. 
+
+Questions Answered:
+
+i.)How does the price of a property vary with the number of bedrooms and bathrooms?
+
+ii.)What is the combined effect of bedrooms and bathrooms on property prices?
+
+```{r}
+library(ggplot2)
+
+# Jitter plot for price vs condition
+ggplot(housing_data, aes(x = as.factor(condition), y = price, color = as.factor(condition))) +
+  geom_jitter(width = 0.2, height = 0, alpha = 0.7) +
+  labs(x = "Condition", y = "Price", title = "Jitter Plot: Price vs Condition") +
+  theme_minimal() +
+  theme(legend.title = element_blank(), legend.position = "bottom")
+
+```
+7.)Jitter Plot: Price vs Condition
+
+Observations:
+
+i.)Prices are spread across different property conditions, showing variability within each condition.
+
+ii.)Higher property conditions(3 to 5) tend to have a broader range of prices.
+
+iii.)The spread of points suggests that price can vary significantly even within the same condition category for example condition 3 and 4.
+
+Questions Answered:
+
+i.)How does property condition impact pricing?
+
+ii.)Are there significant differences in prices among different property conditions?
